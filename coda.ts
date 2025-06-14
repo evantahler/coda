@@ -2,7 +2,7 @@ import { program } from "commander";
 import { EOL } from "os";
 
 import * as pkg from "./package.json";
-import { BotHappy } from "./assets/ascii";
+import { BotHappy } from "./assets/ascii/ascii.test";
 
 program
   .version(pkg.version)
