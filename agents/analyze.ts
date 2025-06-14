@@ -45,5 +45,7 @@ At minimum, you should include:
       startingMessage,
       endingMessage,
     );
+
+    return result;
   }
 }

@@ -3,13 +3,17 @@ import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
 
+import { ToolUtils } from "../utils/toolUtils";
+
+const name = "read_directory_tree";
+const description = "Read the contents of a directory and show its hierarchy";
 const parametersSchema = z.object({ path: z.string() });
 
 export const readDirectoryTreeTool = tool({
-  name: "read_directory_tree",
-  description: "Read the contents of a directory and show its hierarchy",
+  name,
+  description,
   parameters: parametersSchema,
-  execute,
+  execute: ToolUtils.wrappedExecute(name, execute),
 });
 
 export async function execute(parameters: z.infer<typeof parametersSchema>) {
