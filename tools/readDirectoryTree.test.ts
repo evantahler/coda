@@ -26,12 +26,12 @@ describe("readDirectoryTreeTool", () => {
   test("should list directory contents with hierarchy", async () => {
     const result = await execute({ path: testDir });
     const expectedOutput = `Directory tree for ${testDir}:
+├── nested/
+│   ├── deep/
+│   │   └── deep-file.txt
+│   └── nested-file.txt
 ├── file1.txt
-├── file2.js
-└── nested/
-    ├── nested-file.txt
-    └── deep/
-        └── deep-file.txt
+└── file2.js
 `;
     expect(result).toBe(expectedOutput);
   });
@@ -39,5 +39,19 @@ describe("readDirectoryTreeTool", () => {
   test("should handle non-existent directory", async () => {
     const result = await execute({ path: "non-existent-dir" });
     expect(result).toBe("Error reading directory: No such file or directory");
+  });
+
+  test("should respect .gitignore patterns", async () => {
+    // Create a .gitignore file that excludes .js files and the deep directory
+    fs.writeFileSync(path.join(testDir, ".gitignore"), "*.js\ndeep/\n");
+
+    const result = await execute({ path: testDir });
+    const expectedOutput = `Directory tree for ${testDir}:
+├── nested/
+│   └── nested-file.txt
+├── .gitignore
+└── file1.txt
+`;
+    expect(result).toBe(expectedOutput);
   });
 });
