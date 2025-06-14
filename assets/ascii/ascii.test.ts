@@ -1,6 +1,6 @@
+import chalk from "chalk";
 import { readFileSync } from "fs";
 import { join } from "path";
-import chalk from "chalk";
 
 function getAscii(name: string) {
   const ascii = readFileSync(join(__dirname, `${name}.txt`), "utf8");

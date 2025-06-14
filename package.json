@@ -8,17 +8,23 @@
   },
   "module": "coda.ts",
   "scripts": {
-    "test": "bun test"
-  },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "test": "bun test",
+    "pretty": "prettier --write .",
+    "lint": "prettier --check .",
+    "test:all": "bun run format:check && bun test"
   },
   "type": "module",
   "dependencies": {
+    "@openai/agents": "^0.0.7",
     "chalk": "^5.4.1",
     "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }
