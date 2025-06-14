@@ -15,9 +15,11 @@
   },
   "type": "module",
   "dependencies": {
+    "@commander-js/extra-typings": "^14.0.0",
     "@openai/agents": "^0.0.7",
     "chalk": "^5.4.1",
-    "commander": "^14.0.0"
+    "cli-spinners": "^3.2.0",
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
@@ -25,6 +27,7 @@
     "prettier": "^3.5.3"
   },
   "peerDependencies": {
+    "commander": "^14.0.0",
     "typescript": "^5.0.0"
   }
 }
