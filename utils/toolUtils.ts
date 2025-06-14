@@ -1,6 +1,19 @@
+import * as fs from "fs";
+import * as path from "path";
 import { z } from "zod";
 
 export class ToolUtils {
+  static ensureCodaDir(searchPath: string) {
+    const codaDir = path.join(searchPath, ".coda");
+    if (!fs.existsSync(codaDir)) fs.mkdirSync(codaDir, { recursive: true });
+    return codaDir;
+  }
+
+  static getCodaProjectOverviewPath(searchPath: string) {
+    const codaDir = ToolUtils.ensureCodaDir(searchPath);
+    return path.join(codaDir, "project-overview.md");
+  }
+
   static wrappedExecute<T extends z.ZodType, R>(
     name: string,
     execute: (parameters: z.infer<T>) => Promise<R>,

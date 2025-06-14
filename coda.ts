@@ -10,12 +10,7 @@ import * as pkg from "./package.json";
 program
   .version(pkg.version)
   .name(pkg.name)
-  .description(pkg.description + EOL + EOL + BotHappy)
-  .option(
-    "-d, --coda_dir <coda_dir>",
-    "The path to the coda directory",
-    join(process.cwd(), ".coda"),
-  );
+  .description(pkg.description + EOL + EOL + BotHappy);
 
 program
   .command("analyze")

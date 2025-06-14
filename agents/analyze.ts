@@ -1,5 +1,9 @@
+import * as fs from "fs";
+
 import { CodaAgent } from "../classes/codaAgent";
 import { readDirectoryTreeTool } from "../tools/readDirectoryTree";
+import { readFileTool } from "../tools/readFile";
+import { ToolUtils } from "../utils/toolUtils";
 
 export class AnalyzeAgent extends CodaAgent {
   constructor(
@@ -31,21 +35,50 @@ At minimum, you should include:
 * The main classes and objects in the project
 * The main functions and methods in the project
 
+Respond with EXACTLY and ONLY the markdown content that should be saved in a README.md file.
+
     `;
-    const tools = [readDirectoryTreeTool];
+    const tools = [readDirectoryTreeTool, readFileTool];
     super("AnalyzeAgent", instructions, tools, apiKey, baseUrl, model);
   }
 
-  async analyze(path: string) {
-    const startingMessage = `Analyzing ${path}`;
-    const endingMessage = `Completed analyzing ${path}`;
+  async analyze(searchPath: string) {
+    const codaProjectOverviewPath =
+      ToolUtils.getCodaProjectOverviewPath(searchPath);
+
+    const startingMessage = `Analyzing ${searchPath}`;
+    const endingMessage = `Completed analyzing ${searchPath}`;
 
     const result = await this.run(
-      `Analyze the following directory: ${path}`,
+      `Analyze the following directory: ${searchPath}
+      Read the directory tree first.
+      If ${codaProjectOverviewPath} exists, use that as a starting point for your analyses`,
       startingMessage,
       endingMessage,
     );
 
-    return result;
+    const possibleText = result.finalOutput;
+    if (!possibleText) {
+      throw new Error("No response from agent");
+    }
+
+    const successCheck = await this.run(
+      `
+      Is the following text a valid markdown file, and does it succeed in describing the project?
+
+      ---response---
+      ${possibleText}
+      ---response---
+
+      Respond with EXACTLY and ONLY the word "yes" or "no".
+      `,
+    );
+
+    if (successCheck.finalOutput?.toLowerCase().trim() === "yes") {
+      fs.writeFileSync(codaProjectOverviewPath, possibleText);
+      return `Successfully analyzed project, written to ${codaProjectOverviewPath}`;
+    }
+
+    return "Failed to analyze project";
   }
 }
