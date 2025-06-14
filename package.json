@@ -1,0 +1,20 @@
+{
+  "name": "coda",
+  "version": "0.0.1",
+  "description": "A local coding agent written in TypeScript, using Bun and the OpenAI Agents SDK.",
+  "author": "Evan Tahler <evan@evantahler.com>",
+  "bin": {
+    "coda": "./coda.ts"
+  },
+  "module": "coda.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "commander": "^14.0.0"
+  }
+}
