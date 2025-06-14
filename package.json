@@ -11,7 +11,7 @@
     "test": "bun test",
     "pretty": "prettier --write .",
     "lint": "prettier --check .",
-    "test:all": "bun run format:check && bun test"
+    "test:all": "bun run lint && bun test"
   },
   "type": "module",
   "dependencies": {
