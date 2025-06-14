@@ -1,4 +1,5 @@
 import { CodaAgent } from "../classes/codaAgent";
+import { readDirectoryTreeTool } from "../tools/readDirectoryTree";
 
 export class AnalyzeAgent extends CodaAgent {
   constructor(
@@ -30,9 +31,9 @@ At minimum, you should include:
 * The main classes and objects in the project
 * The main functions and methods in the project
 
-Respond with ONLY the EXACT text content, in markdown format, for a file that contains this information.
     `;
-    super("AnalyzeAgent", instructions, apiKey, baseUrl, model);
+    const tools = [readDirectoryTreeTool];
+    super("AnalyzeAgent", instructions, tools, apiKey, baseUrl, model);
   }
 
   async analyze(path: string) {

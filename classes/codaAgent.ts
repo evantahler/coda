@@ -1,9 +1,4 @@
-import {
-  Agent,
-  run,
-  setDefaultOpenAIClient,
-  setOpenAIAPI,
-} from "@openai/agents";
+import { Agent, type Tool, run, setDefaultOpenAIClient } from "@openai/agents";
 import { EventEmitter } from "events";
 import OpenAI from "openai";
 
@@ -26,6 +21,7 @@ export abstract class CodaAgent {
   constructor(
     private readonly name: string,
     private readonly instructions: string,
+    private readonly tools: Tool[] | undefined,
     private readonly apiKey: string,
     private readonly baseUrl: string | undefined,
     private readonly model: string | undefined,
@@ -41,6 +37,7 @@ export abstract class CodaAgent {
       name: this.name,
       model: this.model,
       instructions: this.instructions,
+      tools: this.tools,
     });
 
     this.eventEmitter = new EventEmitter();
