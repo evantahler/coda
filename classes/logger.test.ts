@@ -9,6 +9,7 @@ describe("Logger", () => {
     log_timestamps: false,
     log_level: LogLevel.DEBUG,
     log_color: false,
+    directory: "/tmp",
   });
 
   test("should create logger instance", () => {
@@ -22,6 +23,7 @@ describe("Logger", () => {
       log_level: LogLevel.ERROR,
       log_timestamps: false,
       log_color: false,
+      directory: "/tmp",
     });
     const logger = new Logger(config);
     const consoleSpy = spyOn(console, "debug");
@@ -35,6 +37,7 @@ describe("Logger", () => {
       log_level: LogLevel.ERROR,
       log_timestamps: false,
       log_color: false,
+      directory: "/tmp",
     });
     const logger = new Logger(config);
     const consoleSpy = spyOn(console, "error");
