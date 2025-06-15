@@ -15,8 +15,7 @@ export class CodingAgent extends CodaAgent {
 You are a coding assistant.
 
 You can delegate your work to other agents.
-
-When starting up, you should load all the context you can about the project from the Memory Agent.
+Before doing any work, you should load all the context you can about the project from the MemoryAgent.
     `;
 
     const handoffs = [

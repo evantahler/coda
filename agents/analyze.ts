@@ -8,10 +8,16 @@ import { ToolUtils } from "../utils/toolUtils";
 
 export class AnalyzeAgent extends CodaAgent {
   constructor(config: Config, logger: Logger) {
+    const codaProjectOverviewPath = ToolUtils.getCodaProjectOverviewPath(
+      config.directory,
+    );
     const instructions = `
-You are a coding assistant that analyzes a directory and its contents.
+You are a coding assistant that analyzes the coding project and its contents located at ${config.directory}.
 
 Your goal is to produce a description of the project that does not loose any context so that you, an LLM, can more quickly understand the project next time.  Limit your output to 50,000 words.
+
+If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
+When you are complete, write the markdown results to \`${codaProjectOverviewPath}\`, overwriting the existing file if it exists.
 
 You will be given a path to a directory and you will need to analyze the directory and its contents.
 In order of preference
@@ -46,9 +52,6 @@ Respond with a summary of what you accomplished.
   }
 
   async analyze(projectPath: string) {
-    const codaProjectOverviewPath =
-      ToolUtils.getCodaProjectOverviewPath(projectPath);
-
     this.logger.startSpan(`Analyzing project at ${projectPath}...`);
 
     const result = await this.run(
@@ -56,8 +59,6 @@ Respond with a summary of what you accomplished.
 Analyze the following directory: ${projectPath}
 Only read 10 files at a time, reading 100 files at most.
 Read the directory tree first.
-If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
-When you are complete, write the markdown results to \`${codaProjectOverviewPath}\`, overwriting the existing file if it exists.
       `,
     );
 

@@ -6,6 +6,8 @@ import { z } from "zod";
 import type { Config } from "../classes/config";
 import type { Logger } from "../classes/logger";
 
+const LOGGING_LENGTH_LIMIT = 100;
+
 export class ToolUtils {
   static ensureCodaDir(projectPath: string) {
     const codaDir = path.join(projectPath, ".coda");
@@ -39,7 +41,8 @@ export class ToolUtils {
       for (const [key, value] of Object.entries(parameters)) {
         const stringVal = `${value}`;
         if (stringVal.length > 0) {
-          parmData[key] = stringVal.length > 50 ? "..." : stringVal;
+          parmData[key] =
+            stringVal.length > LOGGING_LENGTH_LIMIT ? "..." : stringVal;
         }
       }
 

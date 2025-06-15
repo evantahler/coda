@@ -86,7 +86,7 @@ addCommonOptions(
   const logger = new Logger(config);
   const agent = new MemoryAgent(config, logger);
 
-  await agent.listMemoryItems(config.directory);
+  await agent.listMemoryItems();
 
   process.exit(0);
 });
@@ -106,7 +106,7 @@ addCommonOptions(
     const logger = new Logger(config);
     const agent = new MemoryAgent(config, logger);
 
-    await agent.addMemoryItem(config.directory, content, options.title);
+    await agent.addMemoryItem(content, options.title);
 
     process.exit(0);
   },
@@ -125,7 +125,7 @@ addCommonOptions(
   const logger = new Logger(config);
   const agent = new MemoryAgent(config, logger);
 
-  await agent.removeMemoryItem(config.directory, description);
+  await agent.removeMemoryItem(description);
 
   process.exit(0);
 });
@@ -141,7 +141,7 @@ addCommonOptions(
   const logger = new Logger(config);
   const agent = new CommandsAgent(config, logger);
 
-  await agent.listCommands(config.directory);
+  await agent.listCommands();
 
   process.exit(0);
 });
@@ -170,7 +170,6 @@ addCommonOptions(
     const agent = new CommandsAgent(config, logger);
 
     await agent.addCommand(
-      config.directory,
       command,
       options.description,
       options.category,
@@ -195,7 +194,7 @@ addCommonOptions(
   const logger = new Logger(config);
   const agent = new CommandsAgent(config, logger);
 
-  await agent.removeCommand(config.directory, description);
+  await agent.removeCommand(description);
 
   process.exit(0);
 });
@@ -213,7 +212,7 @@ addCommonOptions(
   const logger = new Logger(config);
   const agent = new CommandsAgent(config, logger);
 
-  await agent.runCommand(config.directory, cmd);
+  await agent.runCommand(cmd);
 
   process.exit(0);
 });
