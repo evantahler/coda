@@ -23,6 +23,11 @@ export class ToolUtils {
     return path.join(codaDir, "memory.md");
   }
 
+  static getCodaCommandsPath(projectPath: string) {
+    const codaDir = ToolUtils.ensureCodaDir(projectPath);
+    return path.join(codaDir, "commands.md");
+  }
+
   static wrappedExecute<T extends z.ZodType, R>(
     name: string,
     execute: (parameters: z.infer<T>, config: Config) => Promise<R>,
@@ -55,7 +60,8 @@ export class ToolUtils {
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
-        logger.error(`Failed execution after ${duration}ms: ${error}`);
+        const msg = `failed execution of tool \`${name}\` in ${duration}ms: ${error}`;
+        logger.updateSpan(config.log_color ? chalk.red(msg) : msg, "❌");
         throw error;
       }
     };

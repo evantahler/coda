@@ -44,10 +44,14 @@ Respond with a summary of what you accomplished.
     title: string | undefined,
   ) {
     const codaMemoryPath = ToolUtils.getCodaMemoryPath(projectPath);
+    const codaProjectOverviewPath =
+      ToolUtils.getCodaProjectOverviewPath(projectPath);
     this.logger.startSpan(`Adding memory item to ${codaMemoryPath}...`);
 
     const result = await this.run(
       `
+Load the additional context from the project overview file: ${codaProjectOverviewPath}.
+
 Store the following memory item in the memory file: ${codaMemoryPath}.
 The date is ${new Date().toISOString()}.
 The title is: \`${title ?? "undefined - make one up based on the content"}\`.
@@ -65,10 +69,14 @@ Save the changes to the memory file to the path: ${codaMemoryPath}.
 
   async removeMemoryItem(projectPath: string, description: string) {
     const codaMemoryPath = ToolUtils.getCodaMemoryPath(projectPath);
+    const codaProjectOverviewPath =
+      ToolUtils.getCodaProjectOverviewPath(projectPath);
     this.logger.startSpan(`Removing memory item from ${codaMemoryPath}...`);
 
     const result = await this.run(
       `
+Load the additional context from the project overview file: ${codaProjectOverviewPath}.
+
 Remove the following memory item from the memory file: ${codaMemoryPath}.
 The description of the item to remove is: \`${description}\`.
 Update the memory file to reflect the removal.
@@ -80,10 +88,14 @@ Update the memory file to reflect the removal.
 
   async listMemoryItems(projectPath: string) {
     const codaMemoryPath = ToolUtils.getCodaMemoryPath(projectPath);
+    const codaProjectOverviewPath =
+      ToolUtils.getCodaProjectOverviewPath(projectPath);
     this.logger.startSpan(`Listing memory items from ${codaMemoryPath}...`);
 
     const result = await this.run(
       `
+Load the additional context from the project overview file: ${codaProjectOverviewPath}.
+
 List all memory items in the memory file: ${codaMemoryPath}.
 Respond with a markdown table of the memory items.
       `,

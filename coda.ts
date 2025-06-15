@@ -2,6 +2,7 @@ import { program } from "@commander-js/extra-typings";
 import { EOL } from "os";
 
 import { AnalyzeAgent } from "./agents/analyze";
+import { CommandsAgent } from "./agents/commands";
 import { MemoryAgent } from "./agents/memory";
 import { BotHappy } from "./assets/ascii/ascii.test";
 import { Config } from "./classes/config";
@@ -123,6 +124,94 @@ addCommonOptions(
   const agent = new MemoryAgent(config, logger);
 
   await agent.removeMemoryItem(config.directory, description);
+
+  process.exit(0);
+});
+
+const commandsCommand = program
+  .command("command")
+  .description("Manage executable commands");
+
+addCommonOptions(
+  commandsCommand.command("list").description("List all executable commands"),
+).action(async (options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  const agent = new CommandsAgent(config, logger);
+
+  await agent.listCommands(config.directory);
+
+  process.exit(0);
+});
+
+addCommonOptions(
+  commandsCommand
+    .command("add")
+    .description("Add a new executable command")
+    .argument("<command>", "The command to add a new executable command")
+    .option("--description [description]", "The description of the command")
+    .option("--category [category]", "The category of the command")
+    .option("--usage [usage]", "The usage of the command")
+    .option("--example [example]", "The example of the command"),
+).action(
+  async (
+    command: string,
+    options: CommonOptions & {
+      description: string | undefined;
+      category: string | undefined;
+      usage: string | undefined;
+      example: string | undefined;
+    },
+  ) => {
+    const config = new Config(options);
+    const logger = new Logger(config);
+    const agent = new CommandsAgent(config, logger);
+
+    await agent.addCommand(
+      config.directory,
+      command,
+      options.description,
+      options.category,
+      options.usage,
+      options.example,
+    );
+
+    process.exit(0);
+  },
+);
+
+addCommonOptions(
+  commandsCommand
+    .command("remove")
+    .description("Remove an executable command")
+    .argument(
+      "<command>",
+      "The command to remove from the list of executable commands",
+    ),
+).action(async (description: string, options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  const agent = new CommandsAgent(config, logger);
+
+  await agent.removeCommand(config.directory, description);
+
+  process.exit(0);
+});
+
+addCommonOptions(
+  commandsCommand
+    .command("run")
+    .description("Run an executable command")
+    .argument(
+      "<cmd>",
+      "The command to run from the list of executable commands",
+    ),
+).action(async (cmd: string, options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  const agent = new CommandsAgent(config, logger);
+
+  await agent.runCommand(config.directory, cmd);
 
   process.exit(0);
 });
