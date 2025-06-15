@@ -14,7 +14,7 @@ const parametersSchema = z.object({
   commandIdentifier: z.string(),
 });
 
-async function execute(
+export async function execute(
   parameters: z.infer<typeof parametersSchema>,
   config: Config,
 ): Promise<string> {
@@ -51,16 +51,17 @@ async function execute(
   }
 
   try {
-    const { stdout, stderr, exitCode } = await Bun.$`${commandToRun}`.quiet();
-
+    const parts = commandToRun.split(" ");
+    const { stdout, stderr, exitCode } = await Bun.$`${parts}`.quiet();
     if (exitCode !== 0) {
-      throw new Error(`
+      throw new Error(
+        `
 Command failed with exit code ${exitCode}:
 stdout: ${stdout}
 stderr: ${stderr}
-      `);
+        `,
+      );
     }
-
     return stdout.toString();
   } catch (error) {
     throw new Error(`Command failed: ${error}`);
