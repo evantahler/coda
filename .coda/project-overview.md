@@ -36,6 +36,7 @@ bun coda.ts analyze [path] [options]
   - `-t, --timestamps [timestamps]`: Timestamps in log output
 
 **Environment variables:** (`.env` supported)
+
 - `OPENAI_API_KEY`
 - `OPENAI_BASE_URL`
 - `OPENAI_MODEL`
@@ -61,22 +62,26 @@ bun coda.ts analyze [path] [options]
 ## Main Classes, Types, Functions
 
 ### `CodaAgent` (abstract class)
+
 - **Purpose:** Base for all LLM coding agents in the project.
-- **Properties:**  
-  - `agent`: OpenAI Agent object  
+- **Properties:**
+  - `agent`: OpenAI Agent object
   - `name`, `instructions`, `tools`, `config`, `logger`
-- **Methods:**  
+- **Methods:**
   - `run(prompt)`: Run LLM prompt with event-driven logging.
 
 #### Types & Enums
+
 - `CodaAgentEvent` (enum): `DEBUG`, `ERROR`, `LOG`
 - `CodaAgentEventMap`: Event → parameter signature mapping
 
 ### `AnalyzeAgent` (extends `CodaAgent`)
+
 - **Purpose:** Aggregates project information via specialized tools and LLM analysis.
 - **Method:** `analyze(path)`: Runs project analysis, generates markdown summary.
 
 ### `Logger`
+
 - **Purpose:** Formats CLI output based on agent events.
 - **Log Levels:** `DEBUG`, `INFO`, `WARN`, `ERROR`
 - **Features:** Color output, timestamps
