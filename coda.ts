@@ -16,11 +16,6 @@ program
   .command("analyze")
   .description("Analyze a directory")
   .option(
-    "-d, --directory [directory]",
-    "The path to the directory to analyze",
-    process.cwd(),
-  )
-  .option(
     "-k, --openai_api_key [api_key]",
     "The OpenAI API key (also loaded from process.env.OPENAI_API_KEY or same name in .env)",
   )
@@ -31,23 +26,10 @@ program
   .option(
     "-m, --openai_model [model]",
     "The OpenAI model (also loaded from process.env.OPENAI_MODEL or same name in .env)",
-  )
-  .option(
-    "-l, --log_level [level]",
-    "The log level.  Options are: debug, info, warn, error",
-    process.env.LOG_LEVEL,
-  )
-  .option(
-    "-c, --colorize [colorize]",
-    "Colorize the log output",
-    process.env.LOG_COLOR,
-  )
-  .option(
-    "-t, --timestamps [timestamps]",
-    "Include timestamps in the log output",
-    process.env.LOG_TIMESTAMPS,
-  )
-  .action(async (options) => {
+  );
+
+addCommonOptions(program.commands[0]).action(
+  async (options: CommandOptions) => {
     const config = new Config(options);
     const logger = new Logger(config);
     const agent = new AnalyzeAgent(config, logger);
@@ -55,105 +37,79 @@ program
     await agent.analyze(config.directory);
 
     process.exit(0);
-  });
+  },
+);
+
+interface CommonOptions {
+  directory?: string;
+  log_level?: string;
+  colorize?: string;
+  timestamps?: string;
+  [key: string]: string | boolean | undefined;
+}
+
+function addCommonOptions(command: any) {
+  return command
+    .option(
+      "-d, --directory [directory]",
+      "The path to the directory to analyze",
+      process.cwd(),
+    )
+    .option(
+      "-l, --log_level [level]",
+      "The log level.  Options are: debug, info, warn, error",
+      process.env.LOG_LEVEL,
+    )
+    .option(
+      "-c, --colorize [colorize]",
+      "Colorize the log output",
+      process.env.LOG_COLOR,
+    )
+    .option(
+      "-t, --timestamps [timestamps]",
+      "Include timestamps in the log output",
+      process.env.LOG_TIMESTAMPS,
+    );
+}
 
 const memoryCommand = program
   .command("memory")
   .description("Manage memory entries");
 
-memoryCommand
-  .command("list")
-  .description("List all memory entries")
-  .option(
-    "-d, --directory [directory]",
-    "The path to the directory to analyze",
-    process.cwd(),
-  )
-  .option(
-    "-l, --log_level [level]",
-    "The log level.  Options are: debug, info, warn, error",
-    process.env.LOG_LEVEL,
-  )
-  .option(
-    "-c, --colorize [colorize]",
-    "Colorize the log output",
-    process.env.LOG_COLOR,
-  )
-  .option(
-    "-t, --timestamps [timestamps]",
-    "Include timestamps in the log output",
-    process.env.LOG_TIMESTAMPS,
-  )
-  .action(async (options) => {
-    const config = new Config(options);
-    const logger = new Logger(config);
-    // TODO: Implement memory listing logic
-    logger.info("Listing memory entries...");
-    process.exit(0);
-  });
+addCommonOptions(
+  memoryCommand.command("list").description("List all memory entries"),
+).action(async (options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  // TODO: Implement memory listing logic
+  logger.info("Listing memory entries...");
+  process.exit(0);
+});
 
-memoryCommand
-  .command("add")
-  .description("Add a new memory entry")
-  .option(
-    "-d, --directory [directory]",
-    "The path to the directory to analyze",
-    process.cwd(),
-  )
-  .option(
-    "-l, --log_level [level]",
-    "The log level.  Options are: debug, info, warn, error",
-    process.env.LOG_LEVEL,
-  )
-  .option(
-    "-c, --colorize [colorize]",
-    "Colorize the log output",
-    process.env.LOG_COLOR,
-  )
-  .option(
-    "-t, --timestamps [timestamps]",
-    "Include timestamps in the log output",
-    process.env.LOG_TIMESTAMPS,
-  )
-  .argument("<content>", "The content to add to memory")
-  .action(async (content, options) => {
-    const config = new Config(options);
-    const logger = new Logger(config);
-    // TODO: Implement memory addition logic
-    logger.info(`Adding memory entry: ${content}`);
-    process.exit(0);
-  });
+addCommonOptions(
+  memoryCommand
+    .command("add")
+    .description("Add a new memory entry")
+    .argument("<content>", "The content to add to memory"),
+).action(async (content: string, options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  // TODO: Implement memory addition logic
+  logger.info(`Adding memory entry: ${content}`);
+  process.exit(0);
+});
 
-memoryCommand
-  .command("remove")
-  .description("Remove a memory entry")
-  .option(
-    "-d, --directory [directory]",
-    "The path to the directory to analyze",
-    process.cwd(),
-  )
-  .option(
-    "-l, --log_level [level]",
-    "The log level.  Options are: debug, info, warn, error",
-    process.env.LOG_LEVEL,
-  )
-  .option(
-    "-c, --colorize [colorize]",
-    "Colorize the log output",
-    process.env.LOG_COLOR,
-  )
-  .option(
-    "-t, --timestamps [timestamps]",
-    "Include timestamps in the log output",
-    process.env.LOG_TIMESTAMPS,
-  )
-  .argument("<id>", "The ID of the memory entry to remove")
-  .action(async (id, options) => {
-    const config = new Config(options);
-    const logger = new Logger(config);
-    // TODO: Implement memory removal logic
-    logger.info(`Removing memory entry with ID: ${id}`);
-    process.exit(0);
-  });
+addCommonOptions(
+  memoryCommand
+    .command("remove")
+    .description("Remove a memory entry")
+    .argument("<id>", "The ID of the memory entry to remove"),
+).action(async (id: string, options: CommonOptions) => {
+  const config = new Config(options);
+  const logger = new Logger(config);
+  // TODO: Implement memory removal logic
+  logger.info(`Removing memory entry with ID: ${id}`);
+  process.exit(0);
+});
 
 program.parse();
