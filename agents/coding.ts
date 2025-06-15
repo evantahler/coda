@@ -28,7 +28,7 @@ When starting up, you should load all the context you can about the project from
     super("CodingAgent", instructions, [], handoffs, config, logger);
   }
 
-  async code(projectPath: string, message: string) {
+  async code(message: string) {
     this.logger.startSpan("Thinking...");
 
     // Add user message to history
