@@ -43,6 +43,7 @@ export class ToolUtils {
         }
       }
 
+      logger.incrementToolCalls();
       logger.updateSpan(
         `executing tool \`${name}\` ${config.log_color ? chalk.gray(`(${JSON.stringify(parmData)})`) : `(${JSON.stringify(parmData)})`}`,
         "⏳",
