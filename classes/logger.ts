@@ -50,7 +50,7 @@ export class Logger {
 
   private getToolCallStats() {
     const duration = this.getDuration();
-    const toolCallText = `  Tools called: ${this.toolCallCount} | Time elapsed: ${duration}s`;
+    const toolCallText = `  🕝 duration: ${duration}s | 🛠️ tool calls: ${this.toolCallCount}`;
     return this.color ? chalk.dim(toolCallText) : toolCallText;
   }
 
@@ -124,6 +124,7 @@ export class Logger {
   updateSpan(message: string, emoji: string) {
     if (!this.spinner) return;
 
+    const originalText = this.spinner.text;
     const timestamp = this.getTimestamp();
     const spanMarker = this.getSpanMarker();
     const formattedMessage = this.formatMessage(message, chalk.white);
@@ -133,7 +134,7 @@ export class Logger {
       symbol: `${timestamp}${spanMarker} ${emoji}`,
     });
 
-    this.spinner.start(this.formatMessage(message, chalk.cyan));
+    this.spinner.start(this.formatMessage(originalText, chalk.cyan));
     this.updateSpanDisplay();
   }
 

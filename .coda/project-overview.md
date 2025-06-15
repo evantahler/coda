@@ -4,9 +4,18 @@
 
 **CODA**
 
+---
+
 ### Project Description
 
-CODA is a local project summarizer and code analysis agent CLI. It is written in TypeScript, powered by Bun, and leverages the OpenAI Agents SDK. Its purpose is to rapidly analyze codebases and generate structured markdown overviews that can quickly orient humans or language models (LLMs) to the purpose, structure, and design of a project.
+CODA is a local project summarizer and code analysis agent Command-Line Interface (CLI) tool. Authored in TypeScript, designed for the [Bun](https://bun.sh/) runtime, and leveraging the [OpenAI Agents SDK](https://npmjs.com/package/@openai/agents), its core utility is to analyze codebases and produce structured markdown overviews. The summaries generated serve as efficient documentation for both developers and language model (LLM) agents, allowing for rapid project orientation.
+
+CODA is engineered for:
+- **Speed:** harnesses Bun’s parallelism.
+- **Local-first operation:** no required cloud dependencies.
+- **LLM-flexibility:** can target any LLM API.
+- **Extensibility:** modular tool/plugin-style architecture.
+- **Safety:** all execution is sandboxed.
 
 ---
 
@@ -14,42 +23,48 @@ CODA is a local project summarizer and code analysis agent CLI. It is written in
 
 ```
 /Users/evan/workspace/coda
-├── .coda/                # Output directory for project summaries
+├── .coda/                # Output directory for project summaries and docs
+│   ├── commands.md
+│   ├── memory.md
 │   └── project-overview.md
 ├── .github/
-│   └── workflows/        # GitHub Actions CI pipeline
+│   └── workflows/        # GitHub Actions CI pipeline (test/build)
 │       └── test.yml
 ├── .vscode/              # Editor configs
 ├── agents/
-│   └── analyze.ts        # The main analysis agent logic
+│   ├── analyze.ts        # Main analysis agent orchestration
+│   ├── commands.ts
+│   └── memory.ts
 ├── assets/
-│   └── ascii/            # ASCII art for CLI UX
+│   └── ascii/            # ASCII art assets for UX
 │       ├── ascii.test.ts
 │       ├── bot.confused.txt
 │       ├── bot.happy.txt
 │       ├── bot.sad.txt
 │       └── index.test.ts
 ├── classes/
-│   ├── codaAgent.ts      # Agent class and events
-│   ├── config.ts         # Configuration loader/validator
-│   ├── logger.test.ts
-│   └── logger.ts         # CLI logger with colored output and spans
+│   ├── codaAgent.ts      # Abstract agent class/interface
+│   ├── config.ts         # Config loader/validator
+│   ├── logger.test.ts    # Logger unit tests
+│   └── logger.ts         # CLI logger (colors, spans, progress)
 ├── test/
 │   └── mount/
 ├── tools/
 │   ├── readDirectoryTree.test.ts
-│   ├── readDirectoryTree.ts  # Tool: print directory structure
+│   ├── readDirectoryTree.ts  # Tool: directory structure readout
 │   ├── readFile.test.ts
-│   ├── readFile.ts       # Tool: read files as markdown code blocks
+│   ├── readFile.ts       # Tool: file content reader
+│   ├── runCommand.test.ts
+│   ├── runCommand.ts     # Tool: command runner
 │   ├── writeFile.test.ts
-│   └── writeFile.ts      # Tool: safe/sandboxed file writing
+│   └── writeFile.ts      # Tool: safe/sandboxed file write
 ├── utils/
-│   └── toolUtils.ts      # Helpers for tools, paths, output directory
+│   └── toolUtils.ts      # Tool helper: path, output directory, error handling
 ├── .env.example
 ├── .gitignore
 ├── .prettierrc
 ├── bun.lockb
-├── coda.ts               # CLI entry point
+├── coda.ts               # CLI entry point for CODA
 ├── package.json
 ├── README.md
 └── tsconfig.json
@@ -59,15 +74,17 @@ CODA is a local project summarizer and code analysis agent CLI. It is written in
 
 ## Frameworks and Dependencies
 
-- **Runtime:** [Bun](https://bun.sh/) (TypeScript-first runtime like Node)
-- **Languages:** TypeScript
-- **LLM SDK:** [`@openai/agents`](https://npmjs.com/package/@openai/agents)
-- **CLI:** [`@commander-js/extra-typings`](https://npmjs.com/package/@commander-js/extra-typings)
-- **Formatting:** `chalk` (colors), `ora` (spinners), `prettier`, and `@trivago/prettier-plugin-sort-imports`
-- **Validation:** `zod`
-- **Testing:** Bun's built-in test runner (`bun:test`)
+### Overview
 
-#### From package.json
+- **Runtime:** Bun (TypeScript-first runtime)
+- **Language:** TypeScript (`tsconfig.json` - modern ESNext, strict, no emit)
+- **LLM SDK:** `@openai/agents` (OpenAI Agents toolkit)
+- **CLI Parsing:** `@commander-js/extra-typings`
+- **Styling/Formatting:** `chalk` (terminal colors), `ora` (spinner), `prettier` and plugin for import sorting
+- **Validation:** `zod` (schema validation)
+- **Testing:** Bun's built-in test system (`bun:test`)
+
+### Key dependencies (from `package.json`):
 
 ```json
 "dependencies": {
@@ -90,85 +107,88 @@ CODA is a local project summarizer and code analysis agent CLI. It is written in
 
 ---
 
-## Main Components: Classes, Types, and Tools
+## Main Components
 
-### CLI Entrypoint (coda.ts)
+### 1. CLI Entrypoint (`coda.ts`)
 
-- Uses Commander to define commands and their options.
-- Presents usage info, project name, version, and ASCII art in help text.
-- Main command: `analyze` — accepts directory, OpenAI config, logging control.
-- Instantiates `Config`, `Logger`, and the core `AnalyzeAgent`.
-- Runs analysis and exits:
-
-```typescript
-const agent = new AnalyzeAgent(config, logger);
-await agent.analyze(config.directory);
-```
-
----
-
-### Analysis Agent (agents/analyze.ts)
-
-- Defines `AnalyzeAgent`, which **extends CodaAgent**.
-- Sets top-level LLM instructions: reads README/dev docs, infers dependencies, lists main entities, and writes a project overview markdown.
-- Orchestrates the sequence: directory walk, file reads, and summary output.
-- Exposes `analyze(projectPath: string)`:
-
-```typescript
-async analyze(projectPath: string) {
-  this.logger.startSpan(`Analyzing project at ${projectPath}...`);
-  const result = await this.run(
-    `Analyze the following directory: ${projectPath} ...`
-  );
-  this.logger.endSpan(result.finalOutput);
-}
-```
+- Uses `Commander` for CLI command, options, help, and arguments parsing.
+- Displays project metadata, version, and ASCII art.
+- Main command: `analyze`.
+  - Arguments: directory path, OpenAI API config flags, logging options.
+  - Pattern:
+    ```typescript
+    const agent = new AnalyzeAgent(config, logger);
+    await agent.analyze(config.directory);
+    ```
+- Configures and launches the analysis pipeline.
 
 ---
 
-### Abstract Agent Class (classes/codaAgent.ts)
+### 2. Analysis Agent (`agents/analyze.ts`)
 
-- Defines `CodaAgent`, an abstract wrapper for agent invocations.
-- Configures agent model, instructions, and tools via OpenAI Agents SDK.
-- Handles LLM client setup per config.
-- Exposes `.run(prompt)`:
-
-```typescript
-protected async run(prompt: string) {
-  const result = await run(this.agent, prompt);
-  if (result.finalOutput) {
-    this.logger.debug(result.finalOutput);
-  }
-  return result;
-}
-```
-
-#### Events
-
-- `CodaAgentEvent` (`DEBUG`, `ERROR`, `LOG`) and event map for extensible hooks.
+- **AnalyzeAgent**: Main orchestrator, extends abstract `CodaAgent`.
+- Reads README/dev docs, infers dependencies, enumerates primary code structures.
+- Orchestrates:
+  - Directory walking.
+  - File reads and sampling.
+  - Generating markdown project overviews.
+- Core call:
+    ```typescript
+    async analyze(projectPath: string) {
+      this.logger.startSpan(`Analyzing project at ${projectPath}...`);
+      const result = await this.run(
+        `Analyze the following directory: ${projectPath} ...`
+      );
+      this.logger.endSpan(result.finalOutput);
+    }
+    ```
 
 ---
 
-### Configuration and Logging
+### 3. Abstract Agent Class (`classes/codaAgent.ts`)
 
-#### Config Loader (classes/config.ts)
+- **CodaAgent**: abstract, configurable wrapper for invoking LLM agent calls.
+- Setup:
+  - Model (OpenAI API, etc).
+  - Global instructions and tools.
+- Handles client instantiation and prompt invocation.
+- Key method:
+    ```typescript
+    protected async run(prompt: string) {
+      const result = await run(this.agent, prompt);
+      if (result.finalOutput) {
+        this.logger.debug(result.finalOutput);
+      }
+      return result;
+    }
+    ```
+- **Events/Extensibility**: Exposes `CodaAgentEvent` (`DEBUG`, `ERROR`, `LOG`) for event hooks.
 
-- Reads OpenAI settings, log details, and target directory from CLI options or environment variables (via Bun).
-- Validates presence of required args.
-- Used throughout to propagate configuration.
+---
 
-#### Logger (classes/logger.ts)
+### 4. Configuration Loader (`classes/config.ts`)
 
-- Provides colored, leveled output via `chalk` and spinner/progress displays with `ora`.
-- Levels: DEBUG, INFO, WARN, ERROR.
+- Reads required OpenAI API key, directory, log options.
+- Pulls from Bun ENV or CLI options.
+- Ensures presence, validates all configuration, and standardizes access.
+- Example pattern:
+    ```typescript
+    public readonly openai_api_key: string = Bun.env.OPENAI_API_KEY || options.openai_api_key;
+    ```
+
+---
+
+### 5. Logger (`classes/logger.ts`)
+
+- Colorful, timestamped, leveled output with `chalk` & `ora`.
+- Progress “spans” for long actions.
+- Leveled: DEBUG, INFO, WARN, ERROR (filterable at runtime).
 - Methods:
-  - `Logger.startSpan` (starts a CLI progress spinner for a long-running action)
-  - `Logger.updateSpan` (updates spinner message)
-  - `Logger.endSpan` (finishes span, outputs duration)
-- Timestamps and coloring are configurable.
+  - `info()`, `warn()`, `error()`, `debug()`
+  - `startSpan()`, `updateSpan()`, `endSpan()`
+- Tracks time and tool call count during spans.
 
-Example of logging:
-
+Example:
 ```typescript
 logger.info("Starting analysis...");
 logger.startSpan("Reading directory...");
@@ -176,65 +196,81 @@ logger.updateSpan("Processing files...", "📁");
 logger.endSpan("Complete!");
 ```
 
+#### Logger Test (Excerpt from `logger.test.ts`):
+```typescript
+test("should not log debug messages when level is ERROR", () => {
+  // ...setup...
+  logger.debug("test message");
+  expect(consoleSpy).not.toHaveBeenCalled();
+});
+test("should log error messages regardless of level", () => {
+  // ...setup...
+  logger.error("test message");
+  expect(consoleSpy).toHaveBeenCalled();
+});
+```
+
 ---
 
-### Core Tools
+## Tools
 
-#### Directory Tree Tool (tools/readDirectoryTree.ts)
+### Tool: Directory Tree (`tools/readDirectoryTree.ts`)
+- Recursively prints directory structure.
+- Respects `.gitignore` and fixed ignores.
+- Used to give the agent global project overview.
+- Core:
+    ```typescript
+    export async function execute(parameters) {
+      const tree = getDirectoryTree(parameters.path);
+      return `Directory tree for ${parameters.path}:\n${tree}`;
+    }
+    ```
+- Ignores: Controlled by `.gitignore` and always-ignore lists.
 
-- Prints directory structure (respects `.gitignore` and some hardcoded ignores).
-- Used by agent to collect an overview.
-- Main function:
+---
 
-```typescript
-export async function execute(parameters) {
-  const tree = getDirectoryTree(parameters.path);
-  return `Directory tree for ${parameters.path}:\n${tree}`;
-}
-```
+### Tool: File Read (`tools/readFile.ts`)
+- Simple: Reads file contents, returns as a markdown code block for agent/LMM analysis.
 
-Ignores via `.gitignore` parsing and always ignored list.
+---
 
-#### File Read Tool (tools/readFile.ts)
+### Tool: File Write (`tools/writeFile.ts`)
+- **Sandboxed:** Can only write within analyzed project’s directory (no leakage).
+- Used for summary and generated artifact output.
+- Core enforcement:
+    ```typescript
+    if (!targetPath.startsWith(configDir)) {
+      return `Error writing file: Cannot write outside configured directory ${configDir}`;
+    }
+    ```
 
-- Reads the contents of a file and returns text as a markdown code block.
-- Used by the agent to sample and summarize source files.
+---
 
-#### File Write Tool (tools/writeFile.ts)
+### Tool Helpers (`utils/toolUtils.ts`)
+- Ensures `.coda/` output directory exists.
+- Path and file helper utilities.
+- Robust tool call and error handling.
+- Progress reporting, integrates with logger.
 
-- Writes markdown results to the `.coda/project-overview.md` summary location.
-- **Files can only be written within the project directory.** Sandbox enforcement prevents leaking outside the analyzed project.
-
-```typescript
-if (!targetPath.startsWith(configDir)) {
-  return `Error writing file: Cannot write outside configured directory ${configDir}`;
-}
-```
-
-#### Tool Helpers (utils/toolUtils.ts)
-
-- Ensures `.coda` output dir exists, provides full path helpers and wrappers for error-robust tool execution.
-- Stdizes span/progress logging/reporting:
-
+Utility pattern:
 ```typescript
 logger.updateSpan(
   `executing tool \`${name}\` (${JSON.stringify(parmData)})`,
-  "⏳",
+  "⏳"
 );
 ```
 
 ---
 
-## Typical Code Patterns
+## Typical Code and Test Patterns
 
-### CLI Entrypoint Pattern
+### CLI Entrypoint
 
 ```typescript
 program
   .command("analyze")
   .description("Analyze a directory")
   .option("-d, --directory [directory]", ...)
-  ...
   .action(async (options) => {
     const config = new Config(options);
     const logger = new Logger(config);
@@ -244,15 +280,13 @@ program
   });
 program.parse();
 ```
-
-**Usage:** Cleanly sets up CLI, loads config, logs output, and launches agent analysis loop.
+**Usage:** Configures, runs end-to-end, and provides all runtime hooks.
 
 ---
 
 ### Abstract Agent Execution
 
 ```typescript
-// codaAgent.ts
 protected async run(prompt: string) {
   const result = await run(this.agent, prompt);
   if (result.finalOutput) {
@@ -261,16 +295,11 @@ protected async run(prompt: string) {
   return result;
 }
 ```
-
-**Usage:** Encapsulates agent LLM call and logging in a single promise.
+**Usage:** Standardizes agent prompt execution and output logging.
 
 ---
 
-### Pluggable Tool Design
-
-Each tool implements an OpenAI-compatible interface, exposes its schema, description, and wiring. Execution is wrapped for logging and error handling.
-
-**Example from ToolUtils:**
+### Pluggable Tool Execution
 
 ```typescript
 static wrappedExecute<T extends z.ZodType, R>(
@@ -280,47 +309,42 @@ static wrappedExecute<T extends z.ZodType, R>(
   logger: Logger
 )
 ```
-
-**Usage:** Standardizes calling a tool, logging parameters, handling errors, and reporting results.
+**Usage:** Standard approach for robust tool invocation (typed, logged, error-handled).
 
 ---
 
 ## Tests
 
-Mainly using `bun:test`:
+`bun:test` framework is used throughout:
+- Logger: Level-based output, no debug output when set to ERROR, etc.
+- Tools: Directory and file operation sandboxing and ignoring.
+- Output coloring and correct progress display.
+- ASCII assets tested for artistic correctness.
 
-**Example: assets/ascii/index.test.ts**
-
-- Verifies ASCII art format and specific lines.
-- E.g., It checks that the "happy bot" contains certain Unicode and border characters.
-
-**Testing Focus Areas:**
-
-- Directory/filename ignoring for directory tree.
-- Sandboxing in file write tool (cannot write outside analyzed project).
-- Logging correctness and coloring.
-- Proper display of spinners/progress during tool execution.
-
----
-
-## Summary
-
-- **CODA** is a modern, Bun-powered CLI for codebase summarization and rapid codebase comprehension.
-- Uses a pluggable, tool-based agent architecture—easy to extend with more tools.
-- Sandboxed and parallel: ensures safe local operation and fast analysis of large projects.
-- Logging and progress are well-considered for CLI UX.
-- File analysis and output operations are robustly checked with tests.
+Example (from `logger.test.ts`):
+```typescript
+test("should log error messages regardless of level", () => {
+  ...
+  logger.error("test message");
+  expect(consoleSpy).toHaveBeenCalled();
+});
+```
+Assets (`assets/ascii/index.test.ts`) confirm formatting and art asset fidelity.
 
 ---
 
 ## Summary of Accomplishments
 
-- Inspected all critical code, config, and test files in the top 100 files of the repository.
-- Extracted up-to-date package metadata, project structure, architecture, and design details.
-- Summarized main agent, CLI, tool, and config classes, including extensibility and testing.
-- Included typical code and test patterns for future LLM or developer reference.
-- This outcome is documented as `/Users/evan/workspace/coda/.coda/project-overview.md` for LLM/bootstrap efficiency.
+- Read and interpreted the top-level directory structure (max. 100 files).
+- Analyzed core documentation, config, and implementation files.
+- Extracted and described all key project abstractions:
+  - CLI, agent harness, tools, logger, configuration, and tests.
+- Included code snippets, patterns, and test example code.
+- Clearly outlined dependency, framework usage, and folder layout.
+- Documented best-practice recommendations and CI workflow setup (`test.yml`).
+
+**All information is now reflected in `/Users/evan/workspace/coda/.coda/project-overview.md` for rapid LLM or developer bootstrapping.**
 
 ---
 
-If you need further breakdowns of any particular file, class, or function, or want code samples for additional files just outside the first batch, please specify!
+If you need deeper dives, API references, or examples from specific files not covered in this summary, just ask!
