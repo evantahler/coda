@@ -2,6 +2,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
 
+import type { Logger } from "../classes/logger";
+
 export class ToolUtils {
   static ensureCodaDir(searchPath: string) {
     const codaDir = path.join(searchPath, ".coda");
@@ -17,27 +19,27 @@ export class ToolUtils {
   static wrappedExecute<T extends z.ZodType, R>(
     name: string,
     execute: (parameters: z.infer<T>) => Promise<R>,
+    logger: Logger,
   ) {
     return async (parameters: z.infer<T>): Promise<R> => {
-      console.debug(
-        `🛠️ executing tool \`${name}\` with parameters: ${JSON.stringify(
-          parameters,
-        )}`,
+      logger.updateSpan(
+        `executing tool \`${name}\` (${JSON.stringify(parameters)})`,
+        "🔧",
       );
-      const startTime = performance.now();
+      const startTime = Date.now();
 
       try {
         const result = await execute(parameters);
-        const duration = performance.now() - startTime;
-        console.debug(`🛠️ completed execution in ${duration.toFixed(2)}ms`);
-        console.debug(`🛠️ result:`, result);
+        const duration = Date.now() - startTime;
+        logger.updateSpan(
+          `completed execution of tool \`${name}\` in ${duration}s`,
+          "🛠️",
+        );
+        logger.debug(`result: ${result}`);
         return result;
       } catch (error) {
-        const duration = performance.now() - startTime;
-        console.error(
-          `Failed execution after ${duration.toFixed(2)}ms:`,
-          error,
-        );
+        const duration = Date.now() - startTime;
+        logger.error(`Failed execution after ${duration}s: ${error}`);
         throw error;
       }
     };

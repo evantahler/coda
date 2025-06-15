@@ -2,18 +2,20 @@ import { tool } from "@openai/agents";
 import * as fs from "fs";
 import { z } from "zod";
 
+import type { Logger } from "../classes/logger";
 import { ToolUtils } from "../utils/toolUtils";
 
 const name = "read_file";
 const description = "Read the contents of a file";
 const parametersSchema = z.object({ path: z.string() });
 
-export const readFileTool = tool({
-  name,
-  description,
-  parameters: parametersSchema,
-  execute: ToolUtils.wrappedExecute(name, execute),
-});
+export const readFileTool = (logger: Logger) =>
+  tool({
+    name,
+    description,
+    parameters: parametersSchema,
+    execute: ToolUtils.wrappedExecute(name, execute, logger),
+  });
 
 export async function execute(parameters: z.infer<typeof parametersSchema>) {
   try {

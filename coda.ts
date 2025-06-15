@@ -1,10 +1,10 @@
 import { program } from "@commander-js/extra-typings";
 import { EOL } from "os";
-import { join } from "path";
 
 import { AnalyzeAgent } from "./agents/analyze";
 import { BotHappy } from "./assets/ascii/ascii.test";
-import { AgentLogger } from "./classes/agentLogger";
+import { Config } from "./classes/config";
+import { Logger } from "./classes/logger";
 import * as pkg from "./package.json";
 
 program
@@ -17,31 +17,38 @@ program
   .description("Analyze a directory")
   .argument("[path]", "The path to the directory to analyze", process.cwd())
   .option(
-    "-k, --api_key <api_key>",
+    "-k, --openai_api_key [api_key]",
     "The OpenAI API key (also loaded from process.env.OPENAI_API_KEY or same name in .env)",
-    process.env.OPENAI_API_KEY,
   )
   .option(
-    "-b, --base_url [base_url]",
+    "-b, --openai_base_url [base_url]",
     "The OpenAI base URL (also loaded from process.env.OPENAI_BASE_URL or same name in .env)",
-    process.env.OPENAI_BASE_URL,
   )
   .option(
-    "-m, --model [model]",
+    "-m, --openai_model [model]",
     "The OpenAI model (also loaded from process.env.OPENAI_MODEL or same name in .env)",
-    process.env.OPENAI_MODEL,
+  )
+  .option(
+    "-l, --log_level [level]",
+    "The log level.  Options are: debug, info, warn, error",
+    process.env.LOG_LEVEL,
+  )
+  .option(
+    "-c, --colorize [colorize]",
+    "Colorize the log output",
+    process.env.LOG_COLOR,
+  )
+  .option(
+    "-t, --timestamps [timestamps]",
+    "Include timestamps in the log output",
+    process.env.LOG_TIMESTAMPS,
   )
   .action(async (path: string, options) => {
-    const agent = new AnalyzeAgent(
-      `${options.api_key}`,
-      options.base_url ? `${options.base_url}` : undefined,
-      options.model ? `${options.model}` : undefined,
-    );
-
-    const logger = new AgentLogger(agent);
+    const config = new Config(options);
+    const logger = new Logger(config);
+    const agent = new AnalyzeAgent(config, logger);
 
     await agent.analyze(path);
-    logger.end();
 
     process.exit(0);
   });

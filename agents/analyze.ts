@@ -1,16 +1,12 @@
-import * as fs from "fs";
-
 import { CodaAgent } from "../classes/codaAgent";
+import type { Config } from "../classes/config";
+import type { Logger } from "../classes/logger";
 import { readDirectoryTreeTool } from "../tools/readDirectoryTree";
 import { readFileTool } from "../tools/readFile";
 import { ToolUtils } from "../utils/toolUtils";
 
 export class AnalyzeAgent extends CodaAgent {
-  constructor(
-    apiKey: string,
-    baseUrl: string | undefined,
-    model: string | undefined,
-  ) {
+  constructor(config: Config, logger: Logger) {
     const instructions = `
 You are a coding assistant that analyzes a directory and its contents.
 
@@ -38,47 +34,25 @@ At minimum, you should include:
 Respond with EXACTLY and ONLY the markdown content that should be saved in a README.md file.
 
     `;
-    const tools = [readDirectoryTreeTool, readFileTool];
-    super("AnalyzeAgent", instructions, tools, apiKey, baseUrl, model);
+    const tools = [readDirectoryTreeTool(logger), readFileTool(logger)];
+    super("AnalyzeAgent", instructions, tools, config, logger);
   }
 
   async analyze(searchPath: string) {
     const codaProjectOverviewPath =
       ToolUtils.getCodaProjectOverviewPath(searchPath);
 
-    const startingMessage = `Analyzing ${searchPath}`;
-    const endingMessage = `Completed analyzing ${searchPath}`;
+    this.logger.startSpan(`Analyzing project at ${searchPath}...`);
 
     const result = await this.run(
-      `Analyze the following directory: ${searchPath}
-      Read the directory tree first.
-      If ${codaProjectOverviewPath} exists, use that as a starting point for your analyses`,
-      startingMessage,
-      endingMessage,
-    );
-
-    const possibleText = result.finalOutput;
-    if (!possibleText) {
-      throw new Error("No response from agent");
-    }
-
-    const successCheck = await this.run(
       `
-      Is the following text a valid markdown file, and does it succeed in describing the project?
-
-      ---response---
-      ${possibleText}
-      ---response---
-
-      Respond with EXACTLY and ONLY the word "yes" or "no".
+Analyze the following directory: ${searchPath}
+Only read the 10 most important files in the directory.
+Read the directory tree first. If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
+When you are complete, write the markdown results to \`${codaProjectOverviewPath}\`, overwriting the existing file if it exists.
       `,
     );
 
-    if (successCheck.finalOutput?.toLowerCase().trim() === "yes") {
-      fs.writeFileSync(codaProjectOverviewPath, possibleText);
-      return `Successfully analyzed project, written to ${codaProjectOverviewPath}`;
-    }
-
-    return "Failed to analyze project";
+    this.logger.endSpan(result.finalOutput);
   }
 }
