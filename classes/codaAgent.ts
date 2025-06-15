@@ -1,4 +1,10 @@
-import { Agent, type Tool, run, setDefaultOpenAIClient } from "@openai/agents";
+import {
+  Agent,
+  type Tool,
+  handoff,
+  run,
+  setDefaultOpenAIClient,
+} from "@openai/agents";
 import OpenAI from "openai";
 
 import { Config } from "./config";
@@ -17,12 +23,13 @@ export type CodaAgentEventMap = {
 };
 
 export abstract class CodaAgent {
-  readonly agent: Agent;
+  readonly agent: Agent<unknown, "text">;
 
   constructor(
     readonly name: string,
     readonly instructions: string,
     readonly tools: Tool[] | undefined,
+    readonly handoffs: ReturnType<typeof handoff<unknown, "text">>[],
     readonly config: Config,
     readonly logger: Logger,
   ) {
@@ -33,11 +40,12 @@ export abstract class CodaAgent {
     });
     setDefaultOpenAIClient(client);
 
-    this.agent = new Agent({
+    this.agent = new Agent<unknown, "text">({
       name: this.name,
       model: this.config.openai_model,
       instructions: this.instructions,
       tools: this.tools,
+      handoffs: this.handoffs,
     });
   }
 

@@ -50,7 +50,7 @@ Respond with a summary of what you accomplished.
       writeFileTool(config, logger),
       runCommandTool(config, logger),
     ];
-    super("CommandsAgent", instructions, tools, config, logger);
+    super("CommandsAgent", instructions, tools, [], config, logger);
   }
 
   async addCommand(

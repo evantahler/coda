@@ -42,7 +42,7 @@ Respond with a summary of what you accomplished.
       readFileTool(config, logger),
       writeFileTool(config, logger),
     ];
-    super("AnalyzeAgent", instructions, tools, config, logger);
+    super("AnalyzeAgent", instructions, tools, [], config, logger);
   }
 
   async analyze(projectPath: string) {

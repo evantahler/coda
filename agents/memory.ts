@@ -35,7 +35,7 @@ Respond with a summary of what you accomplished.
       readFileTool(config, logger),
       writeFileTool(config, logger),
     ];
-    super("MemoryAgent", instructions, tools, config, logger);
+    super("MemoryAgent", instructions, tools, [], config, logger);
   }
 
   async addMemoryItem(
