@@ -11,7 +11,7 @@ export class AnalyzeAgent extends CodaAgent {
     const instructions = `
 You are a coding assistant that analyzes a directory and its contents.
 
-Your goal is to produce the smallest possible description of the project that does not loose any context so that you, an LLM, can more quickly understand the project next time.
+Your goal is to produce a description of the project that does not loose any context so that you, an LLM, can more quickly understand the project next time.  Limit your output to ~5 megabytes.
 
 You will be given a path to a directory and you will need to analyze the directory and its contents.
 In order of preference
@@ -51,7 +51,7 @@ Respond with a summary of what you accomplished.
     const result = await this.run(
       `
 Analyze the following directory: ${searchPath}
-Only read the 10 most important files in the directory.
+Only read 10 files at a time, reading 100 files at most.
 Read the directory tree first. If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
 When you are complete, write the markdown results to \`${codaProjectOverviewPath}\`, overwriting the existing file if it exists.
       `,

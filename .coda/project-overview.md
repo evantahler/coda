@@ -39,6 +39,34 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 - **Validation:** `zod`
 - **Testing:** `bun:test`
 
+### `package.json` dependencies
+
+<details>
+<summary>Show dependencies</summary>
+
+```json
+{
+  "dependencies": {
+    "@commander-js/extra-typings": "^14.0.0",
+    "@openai/agents": "^0.0.7",
+    "chalk": "^5.4.1",
+    "ora": "^8.2.0",
+    "zod": "^3.25.64"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "commander": "^14.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+</details>
+
 ---
 
 ## Main Classes, Types, and Modules
@@ -55,19 +83,34 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 | `tools/writeFile.ts`         | `writeFileTool` — writes string to a target file                                                       |
 | `utils/toolUtils.ts`         | `ToolUtils` — tool/task helpers, output writing, path helpers, tool wrapping                           |
 
-Classes & Enums:
+### Key Classes & Enums
 
 - `CodaAgentEvent` (DEBUG, ERROR, LOG)
 - `CodaAgentEventMap` (typed event map)
 - `LogLevel` enum (`DEBUG`, `INFO`, `WARN`, `ERROR`)
+- `Config` (agent run configuration validation)
+- `Logger` (pretty, spanned logging)
+- `AnalyzeAgent` (main orchestrator for project summarization)
+- Various "tool" interfaces for read/write file/tree
+
+### Main Methods and Responsibilities
+
+- **Config**: parses CLI/env options, sets runtime flags
+- **Logger**: pretty color output, spans, log level control
+- **CodaAgent.run(prompt)**: runs LLM agent on a prompt, applies tools
+- **AnalyzeAgent.analyze(path)**: main workflow: scans directory, reads files, triggers project overview rendering
+- **readDirectoryTreeTool/readFileTool/writeFileTool**: pluggable tool interfaces for file/directory IO
+- **ToolUtils**: manages .coda directory persistence, tool wrapping, progress indication
 
 ---
 
-## Core Variables & Methods
+## Interfaces, Types, Enums, Constants
 
-- `agent`, `name`, `instructions`, `tools`, `config`, `logger` (in core agent)
-- `run(prompt)` — runs agent with prompt, logs output
-- `analyze(path)` — on `AnalyzeAgent`, orchestrates full project summarization
+- Event system for debugging/logging agent internals
+- CLI/config/environment blending for agent options
+- Zod used for input validation of tool parameters
+- Reusable logger/spinner
+- Bun dockerization for sandboxed `writeFile` actions
 
 ---
 
@@ -89,6 +132,15 @@ Classes & Enums:
 
 ---
 
+## Notable Logic Details
+
+- **Directory tree and file IO**: honors `.gitignore` and common exclusions via pluggable tool
+- **Sandboxed writing**: `writeFile.ts` leverages `docker`+Alpine for isolated writes (default, can adjust later for security)
+- **Extensible tool system**: New tools can be defined and registered to agents as OpenAI LLM-compatible tools
+- **Testing**: Uses `bun:test` with stub/configurable logger for tests
+
+---
+
 ## Author & License
 
 Evan Tahler <evan@evantahler.com> — MIT Licensed (see package.json)
@@ -97,6 +149,7 @@ Evan Tahler <evan@evantahler.com> — MIT Licensed (see package.json)
 
 ## Summary of Accomplishments
 
-- Examined the project directory and prioritized key files (README, main classes, agent, tools, utils, config)
-- Aggregated core classes, enums, variables, main logic flows, and dependencies/frameworks
-- Produced a complete, compact project markdown overview for rapid reuse (by developers or LLMs)
+- Examined the key files in the project and developer docs (README, configuration, utility classes, agent/core, tools)
+- Aggregated class hierarchies, event systems, types, config flows, and dependencies/frameworks
+- Detailed key logic, interfaces, methods, and extensibility in each main component
+- Produced a markdown overview for both developer onboarding and LLM consumption

@@ -42,14 +42,14 @@ export class ToolUtils {
         const result = await execute(parameters, config);
         const duration = Date.now() - startTime;
         logger.updateSpan(
-          `completed execution of tool \`${name}\` in ${duration}s`,
+          `completed execution of tool \`${name}\` in ${duration}ms`,
           "✔️",
         );
         logger.debug(`result: ${result}`);
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
-        logger.error(`Failed execution after ${duration}s: ${error}`);
+        logger.error(`Failed execution after ${duration}ms: ${error}`);
         throw error;
       }
     };
