@@ -88,47 +88,58 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 ## Main Classes, Enums, and Types
 
 ### `coda.ts` (Main Entry)
+
 - Parses CLI arguments using Commander.
 - Displays usage, pulls project version/name from `package.json`, includes ASCII art.
 - Launches `AnalyzeAgent` with config and logger.
 
 ### `agents/analyze.ts`
+
 - Defines the `AnalyzeAgent`, which extends `CodaAgent`.
 - Orchestrates end-to-end analysis: directory walk via `readDirectoryTreeTool`, per-file reads, summary writing, etc.
 - Defines the top-level instructions/goals for the code analysis agent.
 
 ### `classes/codaAgent.ts`
+
 - Defines abstract `CodaAgent`, the core agent contract, which wraps the OpenAI Agents SDK.
 - Configures model, tools, and provides `.run(prompt)` method.
 - Events: `DEBUG`, `ERROR`, `LOG` (via `CodaAgentEvent` and `CodaAgentEventMap`).
 
 ### `classes/config.ts`
+
 - Runtime configuration loader for agent/API keys, directory, log settings, etc.
 - Handles merging CLI, .env, and environment variables.
 
 ### `classes/logger.ts`
+
 - Provides colored, leveled CLI logging and span-based progress display via `chalk` and `ora`.
 - Log levels: DEBUG, INFO, WARN, ERROR (`LogLevel`).
 - `Logger.startSpan`, `Logger.updateSpan`, `Logger.endSpan` methods for progress indication.
 
 ### `tools/readDirectoryTree.ts`
+
 - Implements a tool for printing directory structure, respecting `.gitignore`.
 - Key function: `getDirectoryTree()`.
 
 ### `tools/readFile.ts`
+
 - A pluggable tool to read file contents as markdown code blocks for analysis.
 
 ### `tools/writeFile.ts`
+
 - Tool for writing string content to a file, sandboxed to only permit writing inside the configured project directory.
 
 ### `utils/toolUtils.ts`
+
 - Helpers for tool wrapping, standardizing tool execution, path helpers, and ensuring output directory structure.
 
 ### `assets/ascii/`
+
 - Provides ASCII art assets (happy/neutral/sad bots).
 - Coloring is handled via `chalk`. Used for CLI branding and status cues.
 
 ### Test Files
+
 - Use `bun:test` to validate correctness and edge cases of tools, logger, and ASCII asset rendering.
 - Example: tools refuse to write outside allowed directory, respect .gitignore, etc.
 
