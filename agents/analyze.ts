@@ -3,6 +3,7 @@ import type { Config } from "../classes/config";
 import type { Logger } from "../classes/logger";
 import { readDirectoryTreeTool } from "../tools/readDirectoryTree";
 import { readFileTool } from "../tools/readFile";
+import { writeFileTool } from "../tools/writeFile";
 import { ToolUtils } from "../utils/toolUtils";
 
 export class AnalyzeAgent extends CodaAgent {
@@ -31,10 +32,13 @@ At minimum, you should include:
 * The main classes and objects in the project
 * The main functions and methods in the project
 
-Respond with EXACTLY and ONLY the markdown content that should be saved in a README.md file.
-
+Respond with a summary of what you accomplished.
     `;
-    const tools = [readDirectoryTreeTool(logger), readFileTool(logger)];
+    const tools = [
+      readDirectoryTreeTool(logger),
+      readFileTool(logger),
+      writeFileTool(logger),
+    ];
     super("AnalyzeAgent", instructions, tools, config, logger);
   }
 

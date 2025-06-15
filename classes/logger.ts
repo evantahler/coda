@@ -102,15 +102,19 @@ export class Logger {
   }
 
   endSpan(message: string = "Completed with no output") {
+    const doneMessage = "Done!";
     const timestamp = this.getTimestamp();
     const duration = Math.round(
       (Date.now() - (this.spanStartTime ?? Date.now())) / 1000,
     );
-    this.spinner?.succeed(
-      `${timestamp} ${this.color ? chalk.cyan(message) : message} (${duration}s)`,
-    );
+    this.spinner?.stopAndPersist({
+      text: `${this.color ? chalk.cyan(doneMessage) : doneMessage} (${duration}s)`,
+      symbol: `${timestamp} ✅`,
+    });
 
     this.spinner = undefined;
     this.spanStartTime = undefined;
+
+    this.info(`\r\n${message}\r\n`);
   }
 }

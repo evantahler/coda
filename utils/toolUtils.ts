@@ -22,9 +22,17 @@ export class ToolUtils {
     logger: Logger,
   ) {
     return async (parameters: z.infer<T>): Promise<R> => {
+      const parmData: Record<string, string> = {};
+      for (const [key, value] of Object.entries(parameters)) {
+        const stringVal = `${value}`;
+        if (stringVal.length > 0) {
+          parmData[key] = stringVal.length > 50 ? "..." : stringVal;
+        }
+      }
+
       logger.updateSpan(
-        `executing tool \`${name}\` (${JSON.stringify(parameters)})`,
-        "🔧",
+        `executing tool \`${name}\` (${JSON.stringify(parmData)})`,
+        "⏳",
       );
       const startTime = Date.now();
 
@@ -33,7 +41,7 @@ export class ToolUtils {
         const duration = Date.now() - startTime;
         logger.updateSpan(
           `completed execution of tool \`${name}\` in ${duration}s`,
-          "🛠️",
+          "✔️",
         );
         logger.debug(`result: ${result}`);
         return result;
