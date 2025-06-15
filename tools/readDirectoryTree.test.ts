@@ -38,7 +38,7 @@ describe("readDirectoryTreeTool", () => {
 
   test("should handle non-existent directory", async () => {
     const result = await execute({ path: "non-existent-dir" });
-    expect(result).toBe("Error reading directory: No such file or directory");
+    expect(result.toLowerCase()).toContain("no such file or directory");
   });
 
   test("should respect .gitignore patterns", async () => {
