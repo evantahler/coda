@@ -22,6 +22,11 @@ export type CodaAgentEventMap = {
   [CodaAgentEvent.LOG]: [message: string];
 };
 
+export interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export abstract class CodaAgent {
   readonly agent: Agent<unknown, "text">;
 
@@ -49,8 +54,10 @@ export abstract class CodaAgent {
     });
   }
 
-  protected async run(prompt: string) {
-    const result = await run(this.agent, prompt);
+  protected async run(prompt: string, messageHistory?: Message[]) {
+    const result = await run(this.agent, prompt, {
+      context: { messageHistory },
+    });
 
     if (result.finalOutput) {
       this.logger.debug(result.finalOutput);

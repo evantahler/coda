@@ -1,7 +1,9 @@
 import { program } from "@commander-js/extra-typings";
 import { EOL } from "os";
+import * as readline from "readline";
 
 import { AnalyzeAgent } from "./agents/analyze";
+import { CodingAgent } from "./agents/coding";
 import { CommandsAgent } from "./agents/commands";
 import { MemoryAgent } from "./agents/memory";
 import { BotHappy } from "./assets/ascii/ascii.test";
@@ -215,5 +217,62 @@ addCommonOptions(
 
   process.exit(0);
 });
+
+program
+  .command("code")
+  .description("Start an interactive chat session with the coding agent")
+  .option(
+    "-k, --openai_api_key [api_key]",
+    "The OpenAI API key (also loaded from process.env.OPENAI_API_KEY or same name in .env)",
+  )
+  .option(
+    "-b, --openai_base_url [base_url]",
+    "The OpenAI base URL (also loaded from process.env.OPENAI_BASE_URL or same name in .env)",
+  )
+  .option(
+    "-m, --openai_model [model]",
+    "The OpenAI model (also loaded from process.env.OPENAI_MODEL or same name in .env)",
+  )
+  .action(async (options: CommonOptions) => {
+    const config = new Config(options);
+    const logger = new Logger(config);
+    const agent = new CodingAgent(config, logger);
+
+    console.log(
+      "Starting chat session with coding agent. Type 'exit' to quit.",
+    );
+    console.log(BotHappy);
+
+    const askQuestion = () => {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      rl.question("$: ", async (input) => {
+        rl.close();
+
+        if (
+          input.toLowerCase() === "exit" ||
+          input.toLowerCase() === "q" ||
+          input.toLowerCase() === "quit"
+        ) {
+          process.exit(0);
+        }
+
+        try {
+          await agent.code(input);
+        } catch (error) {
+          console.error("\nError:", error);
+        }
+
+        askQuestion();
+      });
+    };
+
+    askQuestion();
+  });
+
+addCommonOptions(program.commands[program.commands.length - 1]);
 
 program.parse();

@@ -1,6 +1,6 @@
 import { handoff } from "@openai/agents";
 
-import { CodaAgent } from "../classes/codaAgent";
+import { CodaAgent, type Message } from "../classes/codaAgent";
 import type { Config } from "../classes/config";
 import type { Logger } from "../classes/logger";
 import { AnalyzeAgent } from "./analyze";
@@ -8,6 +8,8 @@ import { CommandsAgent } from "./commands";
 import { MemoryAgent } from "./memory";
 
 export class CodingAgent extends CodaAgent {
+  private messageHistory: Message[] = [];
+
   constructor(config: Config, logger: Logger) {
     const instructions = `
 You are a coding assistant.
@@ -26,11 +28,28 @@ When starting up, you should load all the context you can about the project from
     super("CodingAgent", instructions, [], handoffs, config, logger);
   }
 
-  async code(projectPath: string) {
-    this.logger.startSpan(`Coding project at ${projectPath}...`);
+  async code(projectPath: string, message: string) {
+    this.logger.startSpan("Thinking...");
 
-    const result = await this.run(`...`);
+    // Add user message to history
+    this.messageHistory.push({ role: "user", content: message });
+
+    // Run with message history
+    const result = await this.run(message, this.messageHistory);
+
+    // Add assistant response to history
+    if (result.finalOutput) {
+      this.messageHistory.push({
+        role: "assistant",
+        content: result.finalOutput,
+      });
+    }
 
     this.logger.endSpan(result.finalOutput);
+    return result;
+  }
+
+  clearHistory() {
+    this.messageHistory = [];
   }
 }
