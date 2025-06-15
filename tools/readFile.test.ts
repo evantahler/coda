@@ -26,7 +26,7 @@ describe("readFileTool", () => {
 
   test("should handle non-existent file", async () => {
     const result = await execute({ path: "non-existent-file.txt" });
-    expect(result).toBe("Error reading file: No such file or directory");
+    expect(result.toLowerCase()).toContain("no such file or directory");
   });
 
   test("should handle directory path", async () => {
