@@ -77,4 +77,29 @@ describe("writeFileTool", () => {
     // Clean up
     fs.rmdirSync(readOnlyDir);
   });
+
+  test("should prevent writing files outside configured directory", async () => {
+    const config = new Config({
+      directory: testDir,
+    });
+
+    // Attempt to write a file outside the configured directory using path traversal
+    const outsidePath = path.join(process.cwd(), "outside.txt");
+    const result = await execute(
+      {
+        path: outsidePath,
+        content: "This should not be written",
+      },
+      config,
+    );
+
+    // Should return a generic error message
+    expect(result.toLowerCase()).toContain("error writing file");
+    expect(fs.existsSync(outsidePath)).toBe(false);
+
+    // Clean up in case the test fails
+    if (fs.existsSync(outsidePath)) {
+      fs.unlinkSync(outsidePath);
+    }
+  });
 });

@@ -27,12 +27,21 @@ export async function execute(
   config: Config,
 ) {
   try {
-    const relativePath = path.relative(config.directory, parameters.path);
+    // Resolve the target path relative to the configured directory
+    const targetPath = path.resolve(parameters.path);
+    const configDir = path.resolve(config.directory);
+
+    // Check if the target path is outside the configured directory
+    if (!targetPath.startsWith(configDir)) {
+      return `Error writing file: Cannot write outside configured directory ${configDir}`;
+    }
+
+    const relativePath = path.relative(configDir, targetPath);
 
     // Ideally we would use chroots here, but that doesn't work on Windows or Mac...
     // so we can use the much heaver docker with a volume mount to protect the host machine except the directory in question
     const response =
-      await $`docker run --rm -v ${config.directory}:/mount alpine:latest sh -c "printf '%s' '${parameters.content}' > /mount/${relativePath}"`.text();
+      await $`docker run --rm -v ${configDir}:/mount alpine:latest sh -c "printf '%s' '${parameters.content}' > /mount/${relativePath}"`.text();
 
     return `File written successfully to ${parameters.path}${
       response.length > 0 ? ` with response: ${response}` : ""
