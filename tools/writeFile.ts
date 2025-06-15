@@ -1,5 +1,5 @@
 import { tool } from "@openai/agents";
-import { $ } from "bun";
+import * as fs from "fs";
 import path from "path";
 import { z } from "zod";
 
@@ -36,16 +36,16 @@ export async function execute(
       return `Error writing file: Cannot write outside configured directory ${configDir}`;
     }
 
-    const relativePath = path.relative(configDir, targetPath);
+    // Check if the directory exists
+    const dir = path.dirname(targetPath);
+    if (!fs.existsSync(dir)) {
+      return `Error writing file: Directory does not exist: ${dir}`;
+    }
 
-    // Ideally we would use chroots here, but that doesn't work on Windows or Mac...
-    // so we can use the much heaver docker with a volume mount to protect the host machine except the directory in question
-    const response =
-      await $`docker run --rm -v ${configDir}:/mount alpine:latest sh -c "printf '%s' '${parameters.content}' > /mount/${relativePath}"`.text();
+    // Write the file directly
+    fs.writeFileSync(targetPath, parameters.content, "utf-8");
 
-    return `File written successfully to ${parameters.path}${
-      response.length > 0 ? ` with response: ${response}` : ""
-    }`;
+    return `File written successfully to ${parameters.path}`;
   } catch (error: any) {
     return `Error writing file: ${error.message}`;
   }

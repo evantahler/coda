@@ -20,7 +20,7 @@ describe("writeFileTool", () => {
       fs.unlinkSync(testFile);
     }
     if (fs.existsSync(testDir)) {
-      fs.rmdirSync(testDir);
+      fs.rmSync(testDir, { recursive: true, force: true });
     }
   });
 
@@ -42,7 +42,7 @@ describe("writeFileTool", () => {
   });
 
   test("should handle non-existent directory", async () => {
-    const nonExistentPath = path.join(testDir, "nonexistent", "test.txt");
+    const nonExistentPath = path.join(process.cwd(), "nonexistent", "test.txt");
     const config = new Config({
       directory: testDir,
     });

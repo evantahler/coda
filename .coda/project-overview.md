@@ -4,7 +4,7 @@ A local project summarizer and code analysis agent CLI. Written in TypeScript, p
 
 ---
 
-## Overview
+## Project Overview
 
 Coda recursively analyzes source directories, reads README/developer docs, infers dependencies (from `package.json`, etc), inspects main functions/classes/types, and summarizes the entire project. Parallel file analysis via Bun ensures speed. Output is saved as markdown to `.coda/project-overview.md`.
 
@@ -33,6 +33,7 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 ## Frameworks & Dependencies
 
 - **Runtime:** Bun (TypeScript-first, modern JS/TS dev experience)
+- **Languages:** TypeScript
 - **LLM SDK:** `@openai/agents`
 - **CLI:** `@commander-js/extra-typings`, `commander` (peer dep)
 - **Formatting:** `chalk`, `ora`, `prettier`, `@trivago/prettier-plugin-sort-imports`
@@ -40,9 +41,6 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 - **Testing:** `bun:test`
 
 ### `package.json` dependencies
-
-<details>
-<summary>Show dependencies</summary>
 
 ```json
 {
@@ -65,53 +63,6 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 }
 ```
 
-</details>
-
----
-
-## Main Classes, Types, and Modules
-
-| File / Class                 | Description                                                                                            |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `coda.ts`                    | CLI entry; parses args, boots analysis agent                                                           |
-| `agents/analyze.ts`          | `AnalyzeAgent` — inherits from `CodaAgent`, orchestrates reading/summarizing/writing project overview  |
-| `classes/codaAgent.ts`       | `CodaAgent` (abstract) — core agent class; wraps OpenAI Agents SDK, exposes `run()`; event enums/types |
-| `classes/config.ts`          | `Config` — loads/validates CLI/environment options, configures agent run                               |
-| `classes/logger.ts`          | `Logger` — structured/colorful CLI output, spans, log levels                                           |
-| `tools/readDirectoryTree.ts` | `readDirectoryTreeTool` — prints directory structure as a tree, respects `.gitignore`                  |
-| `tools/readFile.ts`          | `readFileTool` — reads file as markdown code block                                                     |
-| `tools/writeFile.ts`         | `writeFileTool` — writes string to a target file                                                       |
-| `utils/toolUtils.ts`         | `ToolUtils` — tool/task helpers, output writing, path helpers, tool wrapping                           |
-
-### Key Classes & Enums
-
-- `CodaAgentEvent` (DEBUG, ERROR, LOG)
-- `CodaAgentEventMap` (typed event map)
-- `LogLevel` enum (`DEBUG`, `INFO`, `WARN`, `ERROR`)
-- `Config` (agent run configuration validation)
-- `Logger` (pretty, spanned logging)
-- `AnalyzeAgent` (main orchestrator for project summarization)
-- Various "tool" interfaces for read/write file/tree
-
-### Main Methods and Responsibilities
-
-- **Config**: parses CLI/env options, sets runtime flags
-- **Logger**: pretty color output, spans, log level control
-- **CodaAgent.run(prompt)**: runs LLM agent on a prompt, applies tools
-- **AnalyzeAgent.analyze(path)**: main workflow: scans directory, reads files, triggers project overview rendering
-- **readDirectoryTreeTool/readFileTool/writeFileTool**: pluggable tool interfaces for file/directory IO
-- **ToolUtils**: manages .coda directory persistence, tool wrapping, progress indication
-
----
-
-## Interfaces, Types, Enums, Constants
-
-- Event system for debugging/logging agent internals
-- CLI/config/environment blending for agent options
-- Zod used for input validation of tool parameters
-- Reusable logger/spinner
-- Bun dockerization for sandboxed `writeFile` actions
-
 ---
 
 ## Project Structure
@@ -128,28 +79,107 @@ Options include specifying OpenAI API key, model, log colorization, and log leve
 - .coda/project-overview.md (output for summaries)
 - README.md
 - package.json
+- tsconfig.json
+- .github/workflows/test.yml (CI)
 ```
 
 ---
 
-## Notable Logic Details
+## Main Classes, Enums, and Types
 
-- **Directory tree and file IO**: honors `.gitignore` and common exclusions via pluggable tool
-- **Sandboxed writing**: `writeFile.ts` leverages `docker`+Alpine for isolated writes (default, can adjust later for security)
-- **Extensible tool system**: New tools can be defined and registered to agents as OpenAI LLM-compatible tools
-- **Testing**: Uses `bun:test` with stub/configurable logger for tests
+### `coda.ts` (Main Entry)
+- Parses CLI arguments using Commander.
+- Displays usage, pulls project version/name from `package.json`, includes ASCII art.
+- Launches `AnalyzeAgent` with config and logger.
+
+### `agents/analyze.ts`
+- Defines the `AnalyzeAgent`, which extends `CodaAgent`.
+- Orchestrates end-to-end analysis: directory walk via `readDirectoryTreeTool`, per-file reads, summary writing, etc.
+- Defines the top-level instructions/goals for the code analysis agent.
+
+### `classes/codaAgent.ts`
+- Defines abstract `CodaAgent`, the core agent contract, which wraps the OpenAI Agents SDK.
+- Configures model, tools, and provides `.run(prompt)` method.
+- Events: `DEBUG`, `ERROR`, `LOG` (via `CodaAgentEvent` and `CodaAgentEventMap`).
+
+### `classes/config.ts`
+- Runtime configuration loader for agent/API keys, directory, log settings, etc.
+- Handles merging CLI, .env, and environment variables.
+
+### `classes/logger.ts`
+- Provides colored, leveled CLI logging and span-based progress display via `chalk` and `ora`.
+- Log levels: DEBUG, INFO, WARN, ERROR (`LogLevel`).
+- `Logger.startSpan`, `Logger.updateSpan`, `Logger.endSpan` methods for progress indication.
+
+### `tools/readDirectoryTree.ts`
+- Implements a tool for printing directory structure, respecting `.gitignore`.
+- Key function: `getDirectoryTree()`.
+
+### `tools/readFile.ts`
+- A pluggable tool to read file contents as markdown code blocks for analysis.
+
+### `tools/writeFile.ts`
+- Tool for writing string content to a file, sandboxed to only permit writing inside the configured project directory.
+
+### `utils/toolUtils.ts`
+- Helpers for tool wrapping, standardizing tool execution, path helpers, and ensuring output directory structure.
+
+### `assets/ascii/`
+- Provides ASCII art assets (happy/neutral/sad bots).
+- Coloring is handled via `chalk`. Used for CLI branding and status cues.
+
+### Test Files
+- Use `bun:test` to validate correctness and edge cases of tools, logger, and ASCII asset rendering.
+- Example: tools refuse to write outside allowed directory, respect .gitignore, etc.
+
+---
+
+## Key Methods and Responsibilities
+
+- **AnalyzeAgent.analyze(path):** Drives project summarization workflow.
+- **CodaAgent.run(prompt):** Generalized LLM-agent invocation.
+- **Config:** Loads/validates all runtime/CLI/API options.
+- **Logger:** Pretty, colored, level-controlled logging and task progress.
+- **readDirectoryTreeTool:** Generates markdown directory trees.
+- **readFileTool:** Returns files as markdown code blocks.
+- **writeFileTool:** Verifies and writes markdown output within sandbox.
+- **ToolUtils:** Handles output directory setup and standard tool invocation reporting.
+
+---
+
+## Extensibility, Security, and Design Details
+
+- **Modular, pluggable tools** via the Agents SDK; easy to add more project analysis functions.
+- **Sandboxed file writes** — never writes outside of analyzed project.
+- **All file/directory reads are filtered loosely by `.gitignore` and common ignores** for speedy, safe analysis.
+- **Parallel execution** possible, leveraging Bun features, for larger projects.
+- **Tests** cover file read/write edge cases, .gitignore honoring, and CLI/log behaviors.
+
+---
+
+## Configuration and Environment
+
+- Config values come from environment, `.env`, and CLI args.
+- Defaults/logging can be adjusted; OpenAI (or Anthropic, with tweaks) is supported for LLM functions.
+- Environment variable support: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` (see `.env.example`).
+
+---
+
+## CI/CD
+
+- GitHub Actions in `.github/workflows/test.yml` sets up Bun, installs, runs tests after push/pull to main.
 
 ---
 
 ## Author & License
 
-Evan Tahler <evan@evantahler.com> — MIT Licensed (see package.json)
+Evan Tahler <evan@evantahler.com> — MIT Licensed
 
 ---
 
 ## Summary of Accomplishments
 
-- Examined the key files in the project and developer docs (README, configuration, utility classes, agent/core, tools)
-- Aggregated class hierarchies, event systems, types, config flows, and dependencies/frameworks
-- Detailed key logic, interfaces, methods, and extensibility in each main component
-- Produced a markdown overview for both developer onboarding and LLM consumption
+- Analyzed every main source/test/configuration file in the top 100 files of the repository.
+- Extracted project structure, agent and tool classes, CLI entrypoint logic, logging/config design, and test suite coverage.
+- Outlined all key responsibilities, class hierarchies, main types, dependencies, and extensibility points.
+- Included details helpful for LLM or developer bootstrapping: high-level strategy, extensibility, and safety boundaries.
