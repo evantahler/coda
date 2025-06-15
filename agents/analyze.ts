@@ -45,15 +45,15 @@ Respond with a summary of what you accomplished.
     super("AnalyzeAgent", instructions, tools, config, logger);
   }
 
-  async analyze(searchPath: string) {
+  async analyze(projectPath: string) {
     const codaProjectOverviewPath =
-      ToolUtils.getCodaProjectOverviewPath(searchPath);
+      ToolUtils.getCodaProjectOverviewPath(projectPath);
 
-    this.logger.startSpan(`Analyzing project at ${searchPath}...`);
+    this.logger.startSpan(`Analyzing project at ${projectPath}...`);
 
     const result = await this.run(
       `
-Analyze the following directory: ${searchPath}
+Analyze the following directory: ${projectPath}
 Only read 10 files at a time, reading 100 files at most.
 Read the directory tree first.
 If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.

@@ -112,13 +112,13 @@ await agent.analyze(config.directory);
 - Defines `AnalyzeAgent`, which **extends CodaAgent**.
 - Sets top-level LLM instructions: reads README/dev docs, infers dependencies, lists main entities, and writes a project overview markdown.
 - Orchestrates the sequence: directory walk, file reads, and summary output.
-- Exposes `analyze(searchPath: string)`:
+- Exposes `analyze(projectPath: string)`:
 
 ```typescript
-async analyze(searchPath: string) {
-  this.logger.startSpan(`Analyzing project at ${searchPath}...`);
+async analyze(projectPath: string) {
+  this.logger.startSpan(`Analyzing project at ${projectPath}...`);
   const result = await this.run(
-    `Analyze the following directory: ${searchPath} ...`
+    `Analyze the following directory: ${projectPath} ...`
   );
   this.logger.endSpan(result.finalOutput);
 }
