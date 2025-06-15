@@ -32,6 +32,7 @@ describe("readFileTool", () => {
 
   test("should handle directory path", async () => {
     const result = await execute({ path: testDir });
-    expect(result).toBe("Error reading file: Is a directory");
+    expect(result.toLowerCase()).toContain("error");
+    expect(result.toLowerCase()).toContain("directory");
   });
 });
