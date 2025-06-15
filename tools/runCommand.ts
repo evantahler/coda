@@ -17,6 +17,7 @@ const parametersSchema = z.object({
 async function execute(
   parameters: z.infer<typeof parametersSchema>,
   config: Config,
+  logger: Logger,
 ): Promise<string> {
   const { projectPath, commandIdentifier } = parameters;
   const codaCommandsPath = ToolUtils.getCodaCommandsPath(projectPath);
@@ -50,11 +51,16 @@ async function execute(
     );
   }
 
-  // Execute the command using Bun's $
   const { stdout, stderr, exitCode } = await Bun.$`${commandToRun}`.quiet();
 
   if (exitCode !== 0) {
-    throw new Error(`Command failed with exit code ${exitCode}: ${stderr}`);
+    throw new Error(
+      `Command failed with exit code ${exitCode}:
+
+      stdout: ${stdout}
+
+      stderr: ${stderr}`,
+    );
   }
 
   return stdout.toString();
