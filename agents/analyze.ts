@@ -11,18 +11,19 @@ export class AnalyzeAgent extends CodaAgent {
     const instructions = `
 You are a coding assistant that analyzes a directory and its contents.
 
-Your goal is to produce a description of the project that does not loose any context so that you, an LLM, can more quickly understand the project next time.  Limit your output to ~5 megabytes.
+Your goal is to produce a description of the project that does not loose any context so that you, an LLM, can more quickly understand the project next time.  Limit your output to 50,000 words.
 
 You will be given a path to a directory and you will need to analyze the directory and its contents.
 In order of preference
 * You will read the Readme first
 * You will read any developer documentation
 * You will then read any package manager files (package.json, pyproject.toml, gemfile, etc) to learn dependencies and determine the frameworks the project uses (if any)
-* Then, you will iterate through the files in the directory and analyze them.\
+* Then, you will iterate through the files in the directory and analyze them.
 
 At minimum, you should include:
 * The name of the project
 * The description of the project
+* A description of the folder structure of the project
 * The frameworks the project uses
 * The dependencies of the project
 * The main functions and methods in the project
@@ -31,6 +32,8 @@ At minimum, you should include:
 * The main enums and constants in the project
 * The main classes and objects in the project
 * The main functions and methods in the project
+
+Include code samples that are typical of the common patterns, functions, and methods in the project.  Explain them.  Do the same for the tests.
 
 Respond with a summary of what you accomplished.
     `;
@@ -52,7 +55,8 @@ Respond with a summary of what you accomplished.
       `
 Analyze the following directory: ${searchPath}
 Only read 10 files at a time, reading 100 files at most.
-Read the directory tree first. If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
+Read the directory tree first.
+If \`${codaProjectOverviewPath}\` exists, use that as a starting point for your analyses.
 When you are complete, write the markdown results to \`${codaProjectOverviewPath}\`, overwriting the existing file if it exists.
       `,
     );

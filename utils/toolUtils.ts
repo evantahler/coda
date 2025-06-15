@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
@@ -33,7 +34,7 @@ export class ToolUtils {
       }
 
       logger.updateSpan(
-        `executing tool \`${name}\` (${JSON.stringify(parmData)})`,
+        `executing tool \`${name}\` ${config.log_color ? chalk.gray(`(${JSON.stringify(parmData)})`) : `(${JSON.stringify(parmData)})`}`,
         "⏳",
       );
       const startTime = Date.now();
