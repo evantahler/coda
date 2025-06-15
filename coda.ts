@@ -15,7 +15,11 @@ program
 program
   .command("analyze")
   .description("Analyze a directory")
-  .argument("[path]", "The path to the directory to analyze", process.cwd())
+  .option(
+    "-d, --directory [directory]",
+    "The path to the directory to analyze",
+    process.cwd(),
+  )
   .option(
     "-k, --openai_api_key [api_key]",
     "The OpenAI API key (also loaded from process.env.OPENAI_API_KEY or same name in .env)",
@@ -43,12 +47,12 @@ program
     "Include timestamps in the log output",
     process.env.LOG_TIMESTAMPS,
   )
-  .action(async (path: string, options) => {
+  .action(async (options) => {
     const config = new Config(options);
     const logger = new Logger(config);
     const agent = new AnalyzeAgent(config, logger);
 
-    await agent.analyze(path);
+    await agent.analyze(config.directory);
 
     process.exit(0);
   });

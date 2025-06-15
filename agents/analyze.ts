@@ -35,9 +35,9 @@ At minimum, you should include:
 Respond with a summary of what you accomplished.
     `;
     const tools = [
-      readDirectoryTreeTool(logger),
-      readFileTool(logger),
-      writeFileTool(logger),
+      readDirectoryTreeTool(config, logger),
+      readFileTool(config, logger),
+      writeFileTool(config, logger),
     ];
     super("AnalyzeAgent", instructions, tools, config, logger);
   }

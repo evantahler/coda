@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
 
+import type { Config } from "../classes/config";
 import type { Logger } from "../classes/logger";
 
 export class ToolUtils {
@@ -18,7 +19,8 @@ export class ToolUtils {
 
   static wrappedExecute<T extends z.ZodType, R>(
     name: string,
-    execute: (parameters: z.infer<T>) => Promise<R>,
+    execute: (parameters: z.infer<T>, config: Config) => Promise<R>,
+    config: Config,
     logger: Logger,
   ) {
     return async (parameters: z.infer<T>): Promise<R> => {
@@ -37,7 +39,7 @@ export class ToolUtils {
       const startTime = Date.now();
 
       try {
-        const result = await execute(parameters);
+        const result = await execute(parameters, config);
         const duration = Date.now() - startTime;
         logger.updateSpan(
           `completed execution of tool \`${name}\` in ${duration}s`,
