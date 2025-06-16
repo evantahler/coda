@@ -19,3 +19,13 @@
 > Description: Runs the project linter using Bun to check for code style issues, potential errors, and enforce coding standards. Helps maintain high code quality and catch bugs early.
 > Usage: Execute in the project root to analyze the codebase for lint errors and warnings. Recommended before making commits or opening pull requests.
 > Example: bun lint
+
+## 3. Run Tests with Bun
+
+** Date Added: 2025-06-15 **
+** Category: Testing **
+
+> Command: `bun test`
+> Description: Runs the project's test suite using Bun's built-in test runner. Executes all tests for code quality, correctness, and reliability.
+> Usage: Run this command in the project root to execute all automated tests. Essential before merging or deploying new code.
+> Example: bun test

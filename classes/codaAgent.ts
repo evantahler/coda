@@ -1,34 +1,21 @@
 import {
   Agent,
+  type AgentInputItem,
+  Runner,
   type Tool,
   handoff,
-  run,
   setDefaultOpenAIClient,
+  user,
 } from "@openai/agents";
 import OpenAI from "openai";
 
 import { Config } from "./config";
 import type { Logger } from "./logger";
 
-export enum CodaAgentEvent {
-  DEBUG = "debug",
-  ERROR = "error",
-  LOG = "log",
-}
-
-export type CodaAgentEventMap = {
-  [CodaAgentEvent.DEBUG]: [message: string];
-  [CodaAgentEvent.ERROR]: [error: Error];
-  [CodaAgentEvent.LOG]: [message: string];
-};
-
-export interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
 export abstract class CodaAgent {
   readonly agent: Agent<unknown, "text">;
+  readonly runner: Runner;
+  history: AgentInputItem[] = [];
 
   constructor(
     readonly name: string,
@@ -52,11 +39,20 @@ export abstract class CodaAgent {
       tools: this.tools,
       handoffs: this.handoffs,
     });
+
+    this.runner = new Runner(this.agent);
   }
 
-  protected async run(prompt: string, messageHistory?: Message[]) {
-    const context = { messageHistory };
-    const result = await run(this.agent, prompt, { context });
+  protected async run(prompt: string, maxTurns = 10) {
+    this.history.push(user(prompt));
+
+    const result = await this.runner.run(this.agent, this.history, {
+      maxTurns,
+    });
+
+    if (result.history.length > 0) {
+      this.history = result.history;
+    }
 
     if (result.finalOutput) {
       this.logger.debug(result.finalOutput);
