@@ -62,7 +62,7 @@ stderr: ${stderr}
         `,
       );
     }
-    return stdout.toString();
+    return stdout.toString() + stderr.toString();
   } catch (error) {
     throw new Error(`Command failed: ${error}`);
   }

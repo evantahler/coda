@@ -52,9 +52,11 @@ Every command entry should have:
 - The actual command to run
 - A description of what the command does
 - Usage instructions
-- An example of how to use the command
+- An example of how to use the command'
 
-Respond with a summary of what you accomplished.
+When asked to run a command, look up the command in the commands file to make sure it is approved, and to learn the exact command to run.  Pass the command to the tool, not the title or any other popery.
+
+When running a command, respond with the full output of the command - do not summarize it or truncate it.
     `;
     const tools = [
       readDirectoryTreeTool(config, logger),
