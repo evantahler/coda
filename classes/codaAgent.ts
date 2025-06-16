@@ -55,9 +55,8 @@ export abstract class CodaAgent {
   }
 
   protected async run(prompt: string, messageHistory?: Message[]) {
-    const result = await run(this.agent, prompt, {
-      context: { messageHistory },
-    });
+    const context = { messageHistory };
+    const result = await run(this.agent, prompt, { context });
 
     if (result.finalOutput) {
       this.logger.debug(result.finalOutput);

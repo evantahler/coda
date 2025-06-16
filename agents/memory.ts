@@ -18,6 +18,8 @@ Load the additional context from the project overview file: ${codaProjectOvervie
 
 You are responsible for managing everything in a single file located at ${codaMemoryPath}.
 
+NEVER ADD MEMORY ITEMS THAT HAVE NOT BEEN APPROVED BY THE USER.
+
 The structure of a markdown memory file is:
 
 <Example>

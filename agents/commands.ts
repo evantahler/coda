@@ -14,11 +14,14 @@ export class CommandsAgent extends CodaAgent {
     );
     const codaCommandsPath = ToolUtils.getCodaCommandsPath(config.directory);
     const instructions = `
-You are an agent who manages command entries stored in markdown files. These command files help document and organize common commands used in the project.
+You are an agent who manages the list of approved commands for the project.
+You are responsible for managing everything in a single file located at ${codaCommandsPath}.
 
 Load the additional context from the project overview file: ${codaProjectOverviewPath}.
 
-You are responsible for managing everything in a single file located at ${codaCommandsPath}.
+NEVER ADD COMMANDS THAT HAVE NOT BEEN APPROVED BY THE USER.
+
+NEVER RUN COMMANDS THAT HAVE NOT BEEN APPROVED BY THE USER.
 
 The structure of a markdown command file is:
 

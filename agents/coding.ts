@@ -3,6 +3,8 @@ import { handoff } from "@openai/agents";
 import { CodaAgent, type Message } from "../classes/codaAgent";
 import type { Config } from "../classes/config";
 import type { Logger } from "../classes/logger";
+import { readFileTool } from "../tools/readFile";
+import { writeFileTool } from "../tools/writeFile";
 import { AnalyzeAgent } from "./analyze";
 import { CommandsAgent } from "./commands";
 import { MemoryAgent } from "./memory";
@@ -13,10 +15,10 @@ export class CodingAgent extends CodaAgent {
   constructor(config: Config, logger: Logger) {
     const instructions = `
 You are a coding assistant.
-
 You can delegate your work to other agents.
-Before doing any work, you should load all the context you can about the project from the MemoryAgent.
-    `;
+`;
+
+    const tools = [readFileTool(config, logger), writeFileTool(config, logger)];
 
     const handoffs = [
       handoff(new MemoryAgent(config, logger).agent),
@@ -24,7 +26,7 @@ Before doing any work, you should load all the context you can about the project
       handoff(new CommandsAgent(config, logger).agent),
     ];
 
-    super("CodingAgent", instructions, [], handoffs, config, logger);
+    super("CodingAgent", instructions, tools, handoffs, config, logger);
   }
 
   async code(message: string) {
